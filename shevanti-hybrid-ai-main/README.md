@@ -1,0 +1,52 @@
+# Shevanti Hybrid AI — XGBoost component
+
+This repository contains the shared project materials and separate ARIMA work. The XGBoost files documented here are the ML contribution; This update changes the shared data/split helper and the XGBoost workflow.
+
+## Open and run in VS Code
+
+Open this repository folder in VS Code. The processed 2010–2025 dataset is already at `data/processed/Flower_price_2010-2025` (CSV format; extension omitted). In the VS Code terminal, create and activate a virtual environment, then install dependencies:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Train/evaluate XGBoost and write its latest test predictions and metrics:
+
+```powershell
+python src/xgboost_model.py
+```
+
+Start the simple web demo:
+
+```powershell
+streamlit run app.py
+```
+
+## Agreed split
+
+All forecasting evaluation must use a chronological **80% train / 20% test** split. Do not shuffle dates. XGBoost applies this ratio to feature-ready rows. The ARIMA owner should apply the same chronological 80/20 ratio to the statistical model and state it clearly in ARIMA documentation. Do not tune against the held-out final 20%.
+
+The XGBoost prediction task is tomorrow's price from prices observed through today.  See [documentation/ml_findings.txt](documentation/ml_findings.txt) for the updated XGBoost report and [src/README.md](src/README.md) for module details.
+
+## Folder structure
+
+```text
+project-root/
+├── app.py                         # Streamlit forecast demonstration
+├── requirements.txt
+├── data/processed/
+│   └── Flower_price_2010-2025     # Input daily price data (keep this file)
+├── src/
+│   ├── shared_utils.py             # Shared data, feature, split and metric helpers
+│   └── xgboost_model.py            # XGBoost model workflow
+├── notebooks/
+│   ├── shevanti_ml_run.ipynb       # XGBoost notebook entry point
+│   └── Shevanthi_arima_run.ipynb   # Statistical model owner's notebook
+├── documentation/
+│   ├── ml_findings.txt
+│   └── arima_findings.txt          # Statistical model owner's documentation
+└── results/tables/                 # Generated predictions and metrics
+```
+

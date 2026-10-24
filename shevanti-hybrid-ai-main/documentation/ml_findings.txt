@@ -1,0 +1,67 @@
+XGBOOST COMPONENT — UPDATED WORKFLOW
+====================================
+
+Scope
+-----
+This file documents the XGBoost contribution only.
+This XGBoost workflow uses historical prices only. It does not include weather,
+festivals, auspicious days, or causal claims.
+
+Data and forecast task
+----------------------
+Source: data/processed/Flower_price_2010-2025
+Columns: DATE, PRICES (the file is CSV-formatted although it has no .csv suffix)
+The workflow reads the available daily observations in chronological order and
+predicts the following day's price from the information available through the
+current observation. Features are lagged prices, recent rolling summaries,
+recent percentage changes, and a short trend summary. No feature uses a future
+price. Missing feature rows at the beginning of the series are dropped.
+
+Evaluation design (mandatory)
+-----------------------------
+Use a chronological 80/20 train/test split on feature-ready observations:
+the earliest 80% are used for training and the latest 20% are held out for
+out-of-sample evaluation. Do not shuffle the series. The test segment must not
+be used to tune model choices. The 80/20 ratio is also the agreed shared split
+for the project; ARIMA must independently use the same chronological 80/20
+ratio.
+
+Report MAE, RMSE, sMAPE, and directional accuracy for XGBoost alongside the
+naive (tomorrow equals today's price) and 7-day-average baselines. Also review
+large-change days separately before making claims about performance. Results
+from the old 2010–2016 notebook (including its 2016 scores) do not describe this
+updated experiment and must not be presented as current results.
+
+Explainability
+--------------
+The app and training workflow use XGBoost contribution scores (TreeSHAP values
+provided by the XGBoost booster) to show which input features moved a forecast
+up or down. These are descriptions of model behavior, not proof that a feature
+caused a real-world price change. Include both successful and failed examples
+when writing final research findings.
+
+Streamlit demo
+--------------
+Run from the repository root with: streamlit run app.py
+The app shows a next-calendar-day point estimate based on the latest available
+observation, recent prices, a rough held-out absolute-error band, feature
+contributions, and held-out model comparison. The error band is a descriptive
+90th percentile of absolute test errors, not a guaranteed prediction interval.
+If data is stale, upload/append current observed prices to the processed file
+before treating the forecast as current. No arbitrary future-date forecast is
+supported without intervening price observations.
+
+Folder map
+----------
+app.py                         Streamlit demonstration
+src/shared_utils.py            Shared cleaning, feature, split and metric helpers
+src/xgboost_model.py            XGBoost training, evaluation and forecast logic
+notebooks/shevanti_ml_run.ipynb Notebook entry point for the same workflow
+results/tables/                Generated evaluation metrics and predictions
+
+Run locally
+-----------
+Install dependencies from requirements.txt, then run:
+  python src/xgboost_model.py
+  streamlit run app.py
+
